@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>نتایج جستجو - RVX</title>
+
+<!-- اسکریپت موتور جستجوی اختصاصی RVX -->
+<script async src="https://cse.google.com/cse.js?cx=25febd6e7adb042c6"></script>
+
+<style>
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* 2. پس‌زمینه کلاً سیاه بدون تغییر تم */
+html, body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #000000 !important;
+    color: #ffffff;
+    font-family: Tahoma, Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* 1. RVX خیلی بالا، سفید و کلفت */
+.logo {
+    font-family: Arial, sans-serif;
+    font-size: 80px;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+    user-select: none;
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* 3. کادر جستجوی مستطیلی نازک با نور سفید پشت */
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.search-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 98%;
+    height: 80%;
+    background: rgba(255, 255, 255, 0.22);
+    filter: blur(12px);
+    border-radius: 12px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.search-box {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 42px; /* کادر نازک */
+    background-color: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+}
+
+#search-input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #ffffff; /* متن سفید */
+    font-weight: 300; /* نازک */
+    font-size: 15px;
+    direction: rtl;
+}
+
+/* 4. دسته‌بندی‌ها با جداکننده | */
+.categories {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    font-size: 14px;
+    color: #ffffff;
+    margin-bottom: 25px;
+}
+
+.cat-item {
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.cat-item:hover {
+    opacity: 0.7;
+}
+
+.separator {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+/* =========================
+   نمایش اختصاصی نتایج RVX
+========================= */
+
+.results-area {
+    width: 100%;
+}
+
+.gsc-search-box, .gsc-control-cse input, form.gsc-search-box, .gsc-control-searchbox-only {
+    display: none !important;
+}
+
+.gsc-control-cse {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+.gsc-results-wrapper-visible {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* شروع نتایج از سمت چپ */
+.gsc-webResult.gsc-result {
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    margin-bottom: 22px !important;
+    padding: 0 0 22px 0 !important;
+    direction: ltr !important; 
+    text-align: left !important;
+}
+
+/* سطر اول: آیکون مربعی کوچولو و اسم سایت */
+.gs-publisher-thumbnail-container, .gsc-url-top {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+}
+
+.gsc-url-top .gs-bidi-start-align {
+    color: #a0a0a0 !important;
+    font-size: 13px !important;
+    text-decoration: none !important;
+}
+
+.gs-publisher-thumbnail {
+    width: 16px !important;
+    height: 16px !important;
+    border-radius: 3px !important;
+}
+
+/* سطر دوم: عنوان اصلی (سفید که بعد کلیک آبی میشه) */
+.gs-title, .gs-title b {
+    color: #ffffff !important;
+    font-size: 17px !important;
+    font-weight: bold !important;
+    text-decoration: none !important;
+    display: block !important;
+    margin-top: 4px !important;
+}
+
+.gs-title:visited, .gs-title:visited b {
+    color: #3b82f6 !important; 
+}
+
+.gs-title:hover {
+    text-decoration: underline !important;
+}
+
+/* سطر سوم: خلاصه توضیحات خود سایت */
+.gs-snippet {
+    color: #cccccc !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    margin-top: 6px !important;
+}
+</style>
+</head>
+<body>
+
+<main class="container">
+
+    <a href="index.html" class="logo">RVX</a>
+
+    <div class="search-wrapper">
+        <div class="search-glow"></div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="جستجو..." autocomplete="off">
+        </div>
+    </div>
+
+    <div class="categories">
+        <span class="cat-item">همه</span>
+        <span class="separator">|</span>
+        <span class="cat-item">تصاویر</span>
+        <span class="separator">|</span>
+        <span class="cat-item">ویدیو</span>
+        <span class="separator">|</span>
+        <span class="cat-item">وب</span>
+    </div>
+
+    <div class="results-area">
+        <div class="gcse-searchresults-only"></div>
+    </div>
+
+</main>
+
+<script>
+const searchInput = document.getElementById('search-input');
+
+// خواندن متن سرچ‌شده از URL و اجرای اتوماتیک
+window.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    
+    if (query) {
+        searchInput.value = query;
+        
+        // انتظار برای لود شدن کامل موتور گوگل
+        const checkGoogle = setInterval(() => {
+            if (window.google && google.search && google.search.cse && google.search.cse.element) {
+                const element = google.search.cse.element.getElement('searchresults-only0');
+                if (element) {
+                    element.execute(query);
+                    clearInterval(checkGoogle);
+                }
+            }
+        }, 100);
+    }
+});
+
+// قابلیت سرچ مجدد داخل همین صفحه نتایج
+searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const query = this.value.trim();
+        if (!query) return;
+        
+        const element = google.search.cse.element.getElement('searchresults-only0');
+        if (element) {
+            element.execute(query);
+        }
+    }
+});
+</script>
+
+</body>
+</html>

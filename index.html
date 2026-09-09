@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>RVX</title>
+
+<style>
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    min-height: 100vh;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: Tahoma, Arial, sans-serif;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    overflow-y: auto;
+    transition: background 0.45s ease, color 0.45s ease;
+}
+
+#lightningCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.glow {
+    position: fixed;
+    width: 520px;
+    height: 520px;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(
+        circle,
+        rgba(0, 100, 255, 0.42) 0%,
+        rgba(0, 70, 255, 0.20) 35%,
+        rgba(0, 0, 0, 0) 72%
+    );
+    filter: blur(18px);
+    -webkit-filter: blur(18px);
+    pointer-events: none;
+    z-index: 0;
+    transition: opacity 0.45s ease;
+}
+
+.top-buttons {
+    position: fixed;
+    top: 18px;
+    left: 18px;
+    display: flex;
+    gap: 10px;
+    z-index: 50;
+}
+
+.theme-button,
+.storm-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid #ffffff;
+    background: #050505;
+    color: #ffffff;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, background 0.4s ease, color 0.4s ease, border-color 0.4s ease;
+}
+
+.theme-button:active, .storm-button:active {
+    transform: scale(0.92);
+}
+
+.container {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px 40px;
+}
+
+.logo {
+    direction: ltr;
+    margin: 0 0 28px 0;
+    font-family: Arial, sans-serif;
+    font-size: 95px;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: 5px;
+    color: #000000;
+    -webkit-text-stroke: 2px #ffffff;
+    user-select: none;
+    text-align: center;
+}
+
+.search-area {
+    position: relative;
+    width: 100%;
+    max-width: 700px;
+    z-index: 10;
+}
+
+.search-box {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    direction: rtl;
+    padding: 0 14px;
+    border-radius: 14px;
+    border: 1px solid #ffffff;
+    background: linear-gradient(135deg, #02070e, #031b3b, #020b17);
+    box-shadow: 0 0 24px rgba(0, 80, 255, 0.14), inset 0 0 20px rgba(0, 80, 255, 0.08);
+    transition: background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease;
+}
+
+.search-icon {
+    flex: 0 0 auto;
+    width: 34px;
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 1;
+    text-align: center;
+    user-select: none;
+}
+
+#search {
+    min-width: 0;
+    flex: 1;
+    height: 100%;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 18px;
+    padding: 0 10px;
+    direction: rtl;
+}
+
+#search::placeholder {
+    color: #ffffff;
+    opacity: 1;
+}
+
+.clear {
+    flex: 0 0 auto;
+    width: 35px;
+    height: 35px;
+    border: 0;
+    background: transparent;
+    color: #ffffff;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.clear.show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.suggestions {
+    position: absolute;
+    top: calc(100% + 9px);
+    right: 0;
+    width: 100%;
+    max-height: 390px;
+    overflow-y: auto;
+    background: rgba(5, 10, 18, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 13px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.55);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+    z-index: 100;
+}
+
+.suggestions.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.suggestion {
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 9px 16px;
+    color: #ffffff;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.suggestion:hover {
+    background: rgba(30, 110, 255, 0.22);
+}
+
+body.light { background-color: #1687e8; }
+body.light .glow { opacity: 0; }
+body.light .theme-button, body.light .storm-button { background: #1687e8; color: #000000; border-color: #000000; }
+body.light .search-box { background: #ff8a00; border-color: #000000; box-shadow: 0 0 25px rgba(255, 130, 0, 0.3); }
+body.light #search, body.light #search::placeholder, body.light .search-icon, body.light .clear { color: #000000; }
+body.light .suggestions { background: rgba(255, 138, 0, 0.98); border-color: #000000; }
+body.light .suggestion { color: #000000; }
+
+@media (max-width: 600px) {
+    .container { padding: 25px 14px 35px; }
+    .logo { margin-bottom: 24px; font-size: 72px; }
+    .search-box { height: 56px; border-radius: 13px; }
+    #search { font-size: 16px; }
+    .top-buttons { top: 14px; left: 14px; }
+    .theme-button, .storm-button { width: 44px; height: 44px; }
+    .glow { width: 330px; height: 330px; top: 25%; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="lightningCanvas"></canvas>
+<div class="glow"></div>
+
+<div class="top-buttons">
+    <button type="button" class="theme-button" id="themeButton">☀️</button>
+    <button type="button" class="storm-button" id="stormButton">☁️</button>
+</div>
+
+<main class="container">
+    <h1 class="logo">RVX</h1>
+    <div class="search-area">
+        <div class="search-box">
+            <span class="search-icon">⌕</span>
+            <input id="search" type="text" autocomplete="off" placeholder="جستجو وب با RVX">
+            <button type="button" class="clear" id="clearButton">×</button>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+</main>
+
+<script>
+"use strict";
+
+const searchInput = document.getElementById("search");
+const suggestions = document.getElementById("suggestions");
+const clearButton = document.getElementById("clearButton");
+const themeButton = document.getElementById("themeButton");
+const stormButton = document.getElementById("stormButton");
+const canvas = document.getElementById("lightningCanvas");
+const ctx = canvas.getContext("2d");
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+function goToSearchPage(query) {
+    if (!query) return;
+    // هدایت مستقیم به صفحه دوم نتایج
+    window.location.href = "search.html?q=" + encodeURIComponent(query);
+}
+
+let currentScript = null;
+let requestId = 0;
+const apiCache = new Map();
+
+function triggerLightningStorm() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const columns = [canvas.width * 0.1, canvas.width * 0.3, canvas.width * 0.5, canvas.width * 0.7, canvas.width * 0.9];
+    let flashCount = 0;
+    const interval = setInterval(function() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (Math.random() > 0.3) {
+            ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        columns.forEach(function(startX) {
+            let x = startX + (Math.random() * 40 - 20);
+            let y = 0;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            while (y < canvas.height) {
+                let nextX = x + (Math.random() * 60 - 30);
+                let nextY = y + (Math.random() * 40 + 20);
+                ctx.lineTo(nextX, nextY);
+                x = nextX;
+                y = nextY;
+            }
+            ctx.strokeStyle = "#ffffff";
+            ctx.lineWidth = Math.random() * 3 + 2;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#a855f7";
+            ctx.stroke();
+        });
+        flashCount++;
+        if (flashCount >= 8) {
+            clearInterval(interval);
+            setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 50);
+        }
+    }, 40);
+}
+stormButton.addEventListener("click", triggerLightningStorm);
+
+function renderSuggestions(results) {
+    suggestions.innerHTML = "";
+    if (!Array.isArray(results) || results.length === 0) {
+        suggestions.classList.remove("show");
+        return;
+    }
+    const fragment = document.createDocumentFragment();
+    results.forEach(function(word) {
+        if (!word) return;
+        const item = document.createElement("div");
+        item.className = "suggestion";
+        item.textContent = word;
+        fragment.appendChild(item);
+    });
+    suggestions.appendChild(fragment);
+    suggestions.classList.add("show");
+}
+
+function fetchGoogleSuggestions(query) {
+    const id = ++requestId;
+    if (apiCache.has(query)) renderSuggestions(apiCache.get(query));
+    if (currentScript) currentScript.remove();
+
+    const callbackName = "__rvx_google_" + Date.now() + "_" + id;
+    const script = document.createElement("script");
+    currentScript = script;
+
+    window[callbackName] = function(data) {
+        let results = (data && Array.isArray(data[1])) ? data[1].slice(0, 8) : [];
+        apiCache.set(query, results);
+        renderSuggestions(results);
+        if (script.parentNode) script.parentNode.removeChild(script);
+    };
+
+    script.src = "https://suggestqueries.google.com/complete/search?client=chrome&callback=" + encodeURIComponent(callbackName) + "&q=" + encodeURIComponent(query);
+    document.body.appendChild(script);
+}
+
+searchInput.addEventListener("input", function() {
+    const query = this.value.trim();
+    clearButton.classList.toggle("show", query.length > 0);
+    if (!query) {
+        suggestions.innerHTML = "";
+        suggestions.classList.remove("show");
+        return;
+    }
+    fetchGoogleSuggestions(query);
+});
+
+suggestions.addEventListener("mousedown", function(event) {
+    const item = event.target.closest(".suggestion");
+    if (!item) return;
+    event.preventDefault();
+    const selectedText = item.textContent.trim();
+    goToSearchPage(selectedText);
+});
+
+clearButton.addEventListener("click", function() {
+    searchInput.value = "";
+    suggestions.innerHTML = "";
+    suggestions.classList.remove("show");
+    clearButton.classList.remove("show");
+    searchInput.focus();
+});
+
+searchInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+        goToSearchPage(this.value.trim());
+    }
+});
+
+themeButton.addEventListener("click", function() {
+    document.body.classList.toggle("light");
+    themeButton.textContent = document.body.classList.contains("light") ? "🌙" : "☀️";
+});
+
+document.addEventListener("click", function(event) {
+    if (!event.target.closest(".search-area")) suggestions.classList.remove("show");
+});
+</script>
+</body>
+</html>
