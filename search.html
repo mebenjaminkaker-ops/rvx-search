@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RVX Search</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #0d0d0d;
+      color: #f4f4f5;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 15px 30px;
+      border-bottom: 1px solid #27272a;
+      background: #0d0d0d;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      font-weight: 900;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .search-box-wrapper {
+      flex: 1;
+      max-width: 600px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 10px 18px;
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 24px;
+      color: #fff;
+      outline: none;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus {
+      border-color: #52525b;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* استایل‌دهی کامل و سفارشی به باکس نتایج گوگل برای دارک شدن مطلق */
+    .gsc-control-cse {
+      background-color: transparent !important;
+      border: none !important;
+      padding: 0 !important;
+    }
+
+    .gsc-search-box, .gsc-input-box {
+      display: none !important; /* حذف کادر جستجوی اضافی خود گوگل */
+    }
+
+    .gsc-webResult.gsc-result {
+      background: #121214 !important;
+      border: 1px solid #27272a !important;
+      border-radius: 12px !important;
+      padding: 16px !important;
+      margin-bottom: 16px !important;
+    }
+
+    .gsc-webResult.gsc-result:hover {
+      border-color: #3f3f46 !important;
+    }
+
+    .gs-title a, .gs-snippet, .gs-visibleUrl {
+      color: #f4f4f5 !important;
+      text-decoration: none !important;
+    }
+
+    .gs-title a:hover {
+      color: #38bdf8 !important; /* رنگ جذاب برای لینک‌ها موقع هاور */
+    }
+
+    .gs-snippet {
+      font-size: 0.9rem !important;
+      margin-top: 6px !important;
+      color: #a1a1aa !important;
+      line-height: 1.6 !important;
+    }
+
+    .gs-visibleUrl {
+      font-size: 0.8rem !important;
+      color: #71717a !important;
+      margin-bottom: 4px !important;
+    }
+
+    /* حذف عناصر اضافی و به‌هم‌ریخته */
+    .gsc-above-wrapper-area, .gsc-cursor-box {
+      border-color: #27272a !important;
+    }
+
+    .gsc-cursor-page {
+      color: #a1a1aa !important;
+      background: #18181b !important;
+      border: 1px solid #27272a !important;
+      padding: 6px 12px;
+      border-radius: 6px;
+      margin: 0 4px;
+    }
+
+    .gsc-cursor-current-page {
+      background: #fff !important;
+      color: #000 !important;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a href="index.html" class="logo">RVX</a>
+    <div class="search-box-wrapper">
+      <input type="text" id="queryInput" class="search-box" placeholder="جستجو در RVX...">
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- کانتینر اصلی نتایج گوگل که با CSS جراحی شده -->
+    <div class="gcse-searchresults-only"></div>
+  </div>
+
+  <!-- اسکریپت موتور جستجو -->
+  <script async src="https://cse.google.com/cse.js?cx=25febd6e7adb042c6"></script>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get('q');
+    const input = document.getElementById('queryInput');
+
+    if (query) {
+      input.value = query;
+    }
+
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && input.value.trim() !== '') {
+        window.location.href = `search.html?q=${encodeURIComponent(input.value.trim())}`;
+      }
+    });
+  </script>
+</body>
+</html>
