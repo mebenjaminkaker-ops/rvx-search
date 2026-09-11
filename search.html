@@ -1,0 +1,46 @@
+async function runQuery(query) {
+    if (!query) return;
+
+    resultsArea.innerHTML = '<div class="status-msg">در حال دریافت نتایج فارسی...</div>';
+
+    try {
+        // استفاده از پروکسی آزاد SearXNG برای دریافت نتایج واقعی گوگل/بینگ
+        const apiUrl = `https://searx.be/search?q=${encodeURIComponent(query)}&format=json`;
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        resultsArea.innerHTML = '';
+        let found = false;
+
+        if (data.results && data.results.length > 0) {
+            data.results.forEach(item => {
+                if (item.url && item.title) {
+                    try {
+                        const parsedUrl = new URL(item.url);
+                        const domain = parsedUrl.hostname.replace('www.', '');
+                        const favicon = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+
+                        resultsArea.innerHTML += `
+                            <div class="result-item" style="direction: rtl; text-align: right;">
+                                <div class="site-header" style="direction: ltr; justify-content: flex-end;">
+                                    <img class="site-favicon" src="${favicon}" alt="" onerror="this.style.display='none'">
+                                    <span class="site-name">${domain}</span>
+                                </div>
+                                <a class="site-title-link" href="${item.url}" target="_blank">${item.title}</a>
+                            </div>
+                        `;
+                        found = true;
+                    } catch(e) {}
+                }
+            });
+        }
+
+        if (!found) {
+            resultsArea.innerHTML = '<div class="status-msg">نتیجه‌ای پیدا نشد.</div>';
+        }
+
+    } catch (err) {
+        resultsArea.innerHTML = '<div class="status-msg">خطا در دریافت اطلاعات. دوباره تلاش کن.</div>';
+        console.error(err);
+    }
+}
