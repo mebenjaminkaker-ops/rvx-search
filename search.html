@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>RVX Search</title>
+<style>
+    :root {
+        --link-color: #3f6bff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+        height: 100%;
+        width: 100%;
+        overscroll-behavior: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    body {
+        background-color: #030303;
+        color: #f5f7ff;
+        font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100%;
+        padding: 30px 16px 60px;
+    }
+
+    .logo {
+        font-size: 42px;
+        font-weight: 900;
+        letter-spacing: 8px;
+        color: #ffffff;
+        margin-bottom: 16px;
+        text-decoration: none;
+    }
+
+    .search-wrapper {
+        position: relative;
+        width: min(90vw, 480px);
+        margin-bottom: 30px;
+    }
+
+    .search-box {
+        position: relative;
+        z-index: 101;
+        width: 100%;
+        height: 48px;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, rgba(0, 0, 0, 0.95) 75%);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.08), inset 0 0 10px rgba(255, 255, 255, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 20px;
+    }
+
+    .search-box input {
+        width: 100%;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        font-weight: 300;
+        color: #ffffff;
+        text-align: center;
+        -webkit-user-select: text;
+        user-select: text;
+    }
+
+    .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.65);
+        font-weight: 300;
+        text-align: center;
+    }
+
+    /* استایل پیشنهادات جستجو دقیقاً هماهنگ با صفحه اول */
+    .suggestions {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 100%;
+        max-height: 320px;
+        overflow-y: auto;
+        background: rgba(10, 15, 25, 0.95);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-5px);
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+        z-index: 100;
+    }
+
+    .suggestions.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+
+    .suggestion {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 8px 16px;
+        color: #ffffff;
+        font-size: 14px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        cursor: pointer;
+        text-align: right;
+    }
+
+    .suggestion:hover {
+        background: rgba(63, 107, 255, 0.25);
+    }
+
+    .results-area {
+        width: min(92vw, 700px);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .result-card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 18px 20px;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .result-card:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.09);
+    }
+
+    .result-url {
+        color: rgba(245, 247, 255, 0.5);
+        font-size: 12px;
+        margin-bottom: 6px;
+        direction: ltr;
+        text-align: right;
+        word-break: break-all;
+    }
+
+    .result-title {
+        color: var(--link-color);
+        text-decoration: none;
+        font-size: 18px;
+        font-weight: 700;
+        display: block;
+    }
+
+    .result-title:hover {
+        text-decoration: underline;
+    }
+
+    .no-results {
+        text-align: center;
+        color: rgba(245, 247, 255, 0.6);
+        margin-top: 40px;
+        font-size: 15px;
+    }
+</style>
+</head>
+<body>
+
+    <a href="index.html" class="logo">RVX</a>
+
+    <div class="search-wrapper">
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="جستجو" autocomplete="off">
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <div class="results-area" id="resultsArea"></div>
+
+    <script>
+        const customSites = [
+            { title: "گیت‌هاب - مرجع توسعه‌دهندگان", url: "https://github.com" },
+            { title: "استک اورفلو - حل مشکلات کدنویسی", url: "https://stackoverflow.com" },
+            { title: "بلاگ هوش مصنوعی گوگل", url: "https://blog.google/technology/ai/" },
+            { title: "توسعه‌دهندگان جمنای", url: "https://ai.google.dev" },
+            { title: "موتور جستجوی داک‌دک‌گو", url: "https://duckduckgo.com" }
+        ];
+
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsDiv = document.getElementById('suggestions');
+        const resultsArea = document.getElementById('resultsArea');
+
+        let currentScript = null;
+        let requestId = 0;
+        const apiCache = new Map();
+
+        // انجام جستجو بین سایت‌های لوکال خودمون
+        function performSearch(query) {
+            resultsArea.innerHTML = '';
+            const lowerQuery = query.toLowerCase().trim();
+
+            if (!lowerQuery) return;
+
+            const filtered = customSites.filter(site => 
+                site.title.toLowerCase().includes(lowerQuery) || site.url.toLowerCase().includes(lowerQuery)
+            );
+
+            if (filtered.length === 0) {
+                resultsArea.innerHTML = `<div class="no-results">موردی متناسب با "${query}" بین سایت‌های شما پیدا نشد داداش!</div>`;
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            filtered.forEach(site => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <div class="result-url">${site.url}</div>
+                    <a href="${site.url}" target="_blank" class="result-title">${site.title}</a>
+                `;
+                fragment.appendChild(card);
+            });
+            resultsArea.appendChild(fragment);
+        }
+
+        // رندر کردن باکس پیشنهادات
+        function renderSuggestions(results) {
+            suggestionsDiv.innerHTML = "";
+            if (!Array.isArray(results) || results.length === 0) {
+                suggestionsDiv.classList.remove("show");
+                return;
+            }
+            const fragment = document.createDocumentFragment();
+            results.forEach(function(word) {
+                if (!word) return;
+                const item = document.createElement("div");
+                item.className = "suggestion";
+                item.textContent = word;
+                fragment.appendChild(item);
+            });
+            suggestionsDiv.appendChild(fragment);
+            suggestionsDiv.classList.add("show");
+        }
+
+        // سیستم گرفتن پیشنهادات هوشمند
+        function fetchSuggestions(query) {
+            const id = ++requestId;
+            if (apiCache.has(query)) {
+                renderSuggestions(apiCache.get(query));
+                return;
+            }
+            if (currentScript) currentScript.remove();
+
+            const callbackName = "__rvx_search_" + Date.now() + "_" + id;
+            const script = document.createElement("script");
+            currentScript = script;
+
+            window[callbackName] = function(data) {
+                let results = (data && Array.isArray(data[1])) ? data[1].slice(0, 6) : [];
+                apiCache.set(query, results);
+                renderSuggestions(results);
+                if (script.parentNode) script.parentNode.removeChild(script);
+            };
+
+            script.src = "https://suggestqueries.google.com/complete/search?client=chrome&callback=" + encodeURIComponent(callbackName) + "&q=" + encodeURIComponent(query);
+            document.body.appendChild(script);
+        }
+
+        // بررسی بارگذاری اولیه صفحه و خواندن پارامتر q از URL
+        window.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const query = params.get('q');
+            if (query) {
+                searchInput.value = query;
+                performSearch(query);
+            }
+        });
+
+        // رویداد تایپ برای آوردن پیشنهادها
+        searchInput.addEventListener("input", function() {
+            const query = this.value.trim();
+            if (!query) {
+                suggestionsDiv.innerHTML = "";
+                suggestionsDiv.classList.remove("show");
+                return;
+            }
+            fetchSuggestions(query);
+        });
+
+        // انتخاب پیشنهاد با کلیک روی آن
+        suggestionsDiv.addEventListener("mousedown", function(event) {
+            const item = event.target.closest(".suggestion");
+            if (!item) return;
+            event.preventDefault();
+            const selectedText = item.textContent.trim();
+            searchInput.value = selectedText;
+            suggestionsDiv.classList.remove("show");
+            history.replaceState(null, '', `search.html?q=${encodeURIComponent(selectedText)}`);
+            performSearch(selectedText);
+        });
+
+        // زدن کلید Enter برای جستجو
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && searchInput.value.trim() !== '') {
+                const query = searchInput.value.trim();
+                suggestionsDiv.classList.remove("show");
+                history.replaceState(null, '', `search.html?q=${encodeURIComponent(query)}`);
+                performSearch(query);
+            }
+        });
+
+        // بستن پیشنهادات با کلیک بیرون از کادر
+        document.addEventListener("click", function(event) {
+            if (!event.target.closest(".search-wrapper")) {
+                suggestionsDiv.classList.remove("show");
+            }
+        });
+    </script>
+</body>
+</html>
