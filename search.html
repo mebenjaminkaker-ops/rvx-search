@@ -1,0 +1,177 @@
+let customSites = [];
+
+async function loadSites() {
+    try {
+        const response = await fetch('sites.json');
+        customSites = await response.json();
+        const params = new URLSearchParams(window.location.search);
+        const query = params.get('q');
+        if (query) {
+            searchInput.value = query;
+            performSearch(query);
+        }
+    } catch (error) {
+        console.error("خطا در بارگذاری فایل سایت‌ها:", error);
+    }
+}
+
+const searchInput = document.getElementById('searchInput');
+const suggestionsDiv = document.getElementById('suggestions');
+const resultsArea = document.getElementById('resultsArea');
+
+let currentScript = null;
+let requestId = 0;
+const apiCache = new Map();
+
+function normalizeText(text) {
+    return text.toLowerCase()
+        .replace(/ك/g, 'ک')
+        .replace(/ي/g, 'ی')
+        .replace(/[\u200c\s]+/g, ' ')
+        .trim();
+}
+
+function performSearch(query) {
+    resultsArea.innerHTML = '';
+    const cleanQuery = normalizeText(query);
+
+    if (!cleanQuery) return;
+
+    const queryWords = cleanQuery.split(' ');
+
+    const filtered = customSites.map(site => {
+        const title = normalizeText(site.title);
+        const url = normalizeText(site.url);
+        let score = 0;
+
+        if (title.includes(cleanQuery) || url.includes(cleanQuery)) {
+            score += 10;
+        }
+
+        queryWords.forEach(word => {
+            if (title.includes(word) || url.includes(word)) {
+                score += 2;
+            }
+        });
+
+        return { site, score };
+    }).filter(item => item.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .map(item => item.site);
+
+    if (filtered.length === 0) {
+        resultsArea.innerHTML = `<div class="no-results">موردی متناسب با "${query}" بین سایت‌های شما پیدا نشد داداش!</div>`;
+        return;
+    }
+
+    const fragment = document.createDocumentFragment();
+    filtered.forEach(site => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = `
+            <div class="result-url">${site.url}</div>
+            <a href="${site.url}" target="_blank" class="result-title">${site.title}</a>
+        `;
+        fragment.appendChild(card);
+    });
+    resultsArea.appendChild(fragment);
+}
+
+function renderSuggestions(results) {
+    suggestionsDiv.innerHTML = "";
+    if (!Array.isArray(results) || results.length === 0) {
+        suggestionsDiv.classList.remove("show");
+        return;
+    }
+    const fragment = document.createDocumentFragment();
+    results.forEach(function(word) {
+        if (!word) return;
+        const item = document.createElement("div");
+        item.className = "suggestion";
+        item.textContent = word;
+        fragment.appendChild(item);
+    });
+    suggestionsDiv.appendChild(fragment);
+    suggestionsDiv.classList.add("show");
+}
+
+function fetchSuggestions(query) {
+    const id = ++requestId;
+    if (apiCache.has(query)) {
+        renderSuggestions(apiCache.get(query));
+        return;
+    }
+    if (currentScript) currentScript.remove();
+
+    const callbackName = "__rvx_search_" + Date.now() + "_" + id;
+    const script = document.createElement("script");
+    currentScript = script;
+
+    window[callbackName] = function(data) {
+        let results = (data && Array.isArray(data[1])) ? data[1].slice(0, 6) : [];
+        apiCache.set(query, results);
+        renderSuggestions(results);
+        if (script.parentNode) script.parentNode.removeChild(script);
+    };
+
+    script.src = "https://suggestqueries.google.com/complete/search?client=chrome&callback=" + encodeURIComponent(callbackName) + "&q=" + encodeURIComponent(query);
+    document.body.appendChild(script);
+}
+
+function injectSettingsUI() {
+    const settingsBtn = document.createElement('button');
+    settingsBtn.innerHTML = '⚙️';
+    settingsBtn.style.cssText = 'position:fixed; bottom:20px; left:20px; z-index:9999; background:#222; color:#fff; border:none; border-radius:50%; width:40px; height:40px; cursor:pointer; font-size:18px; box-shadow:0 2px 5px rgba(0,0,0,0.3);';
+    
+    settingsBtn.onclick = () => {
+        let savedKey = localStorage.getItem('gemini_api_key') || '';
+        let userKey = prompt('کلید API جمنای خودت رو وارد کن داداش:', savedKey);
+        if (userKey !== null) {
+            localStorage.setItem('gemini_api_key', userKey.trim());
+            alert('کلید با موفقیت ذخیره شد!');
+        }
+    };
+    
+    document.body.appendChild(settingsBtn);
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    loadSites();
+    injectSettingsUI();
+});
+
+searchInput.addEventListener("input", function() {
+    const query = this.value.trim();
+    if (!query) {
+        suggestionsDiv.innerHTML = "";
+        suggestionsDiv.classList.remove("show");
+        return;
+    }
+    fetchSuggestions(query);
+});
+
+suggestionsDiv.addEventListener("mousedown", function(event) {
+    const item = event.target.closest(".suggestion");
+    if (!item) return;
+    event.preventDefault();
+    const selectedText = item.textContent.trim();
+    searchInput.value = selectedText;
+    suggestionsDiv.classList.remove("show");
+    history.replaceState(null, '', `search.html?q=${encodeURIComponent(selectedText)}`);
+    performSearch(selectedText);
+});
+
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && searchInput.value.trim() !== '') {
+        const query = searchInput.value.trim();
+        suggestionsDiv.classList.remove("show");
+        history.replaceState(null, '', `search.html?q=${encodeURIComponent(query)}`);
+        performSearch(query);
+    }
+});
+
+document.addEventListener("click", function(event) {
+    if (!event.target.closest(".search-wrapper")) {
+        suggestionsDiv.classList.remove("show");
+    }
+});
