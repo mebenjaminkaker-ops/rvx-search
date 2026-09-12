@@ -1,0 +1,56 @@
+        function normalizeText(text) {
+            return text.toLowerCase()
+                .replace(/ك/g, 'ک')
+                .replace(/ي/g, 'ی')
+                .replace(/[\u200c\s]+/g, ' ') // تبدیل فاصله نیم‌فاصله‌ها و چند فاصله به یک فاصله
+                .trim();
+        }
+
+        function performSearch(query) {
+            resultsArea.innerHTML = '';
+            const cleanQuery = normalizeText(query);
+
+            if (!cleanQuery) return;
+
+            const queryWords = cleanQuery.split(' ');
+
+            // سیستم امتیازدهی و جستجوی پیشرفته
+            const filtered = customSites.map(site => {
+                const title = normalizeText(site.title);
+                const url = normalizeText(site.url);
+                let score = 0;
+
+                // اگر کل عبارت دقیقاً توش بود امتیاز بالا
+                if (title.includes(cleanQuery) || url.includes(cleanQuery)) {
+                    score += 10;
+                }
+
+                // بررسی کلمه به کلمه
+                queryWords.forEach(word => {
+                    if (title.includes(word) || url.includes(word)) {
+                        score += 2;
+                    }
+                });
+
+                return { site, score };
+            }).filter(item => item.score > 0)
+              .sort((a, b) => b.score - a.score)
+              .map(item => item.site);
+
+            if (filtered.length === 0) {
+                resultsArea.innerHTML = `<div class="no-results">موردی متناسب با "${query}" بین سایت‌های شما پیدا نشد داداش!</div>`;
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            filtered.forEach(site => {
+                const card = document.createElement('div');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <div class="result-url">${site.url}</div>
+                    <a href="${site.url}" target="_blank" class="result-title">${site.title}</a>
+                `;
+                fragment.appendChild(card);
+            });
+            resultsArea.appendChild(fragment);
+        }
